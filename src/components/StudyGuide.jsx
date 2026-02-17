@@ -75,22 +75,6 @@ export default function StudyGuide({ onBack }) {
     saveChecklistState(newState);
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleDownloadMarkdown = () => {
-    const blob = new Blob([studyGuideContent], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'aws-ml-specialty-study-guide.md';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   const handleDownloadPDF = () => {
     const a = document.createElement('a');
     a.href = '/aws-ml-specialty-study-guide.pdf';
@@ -198,9 +182,9 @@ export default function StudyGuide({ onBack }) {
     : sections;
 
   return (
-    <div className="min-h-screen bg-slate-900 print:bg-white">
-      {/* Header - hide on print */}
-      <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur border-b border-slate-700 print:hidden">
+    <div className="min-h-screen bg-slate-900">
+      {/* Header */}
+      <div className="sticky top-0 z-20 bg-slate-900/95 backdrop-blur border-b border-slate-700">
         <div className="max-w-5xl mx-auto px-4 py-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -230,7 +214,7 @@ export default function StudyGuide({ onBack }) {
                 </svg>
               </div>
               
-              {/* Export buttons */}
+              {/* Export button */}
               <button
                 onClick={handleDownloadPDF}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/20 text-amber-500 hover:bg-amber-500/30 transition-colors rounded-lg text-sm font-medium"
@@ -241,32 +225,14 @@ export default function StudyGuide({ onBack }) {
                 </svg>
                 <span className="hidden sm:inline">PDF</span>
               </button>
-              <button
-                onClick={handlePrint}
-                className="p-2 text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800"
-                title="Print"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-              </button>
-              <button
-                onClick={handleDownloadMarkdown}
-                className="p-2 text-slate-400 hover:text-white transition-colors rounded-lg hover:bg-slate-800"
-                title="Download Markdown"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-6 print:max-w-none print:px-8">
-        {/* Progress Card - hide on print */}
-        <div className="bg-slate-800 rounded-xl p-4 mb-6 border border-slate-700 print:hidden">
+      <div className="max-w-5xl mx-auto px-4 py-6">
+        {/* Progress Card */}
+        <div className="bg-slate-800 rounded-xl p-4 mb-6 border border-slate-700">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <h2 className="text-white font-semibold mb-1">Practice Checklist Progress</h2>
@@ -286,8 +252,8 @@ export default function StudyGuide({ onBack }) {
           </div>
         </div>
 
-        {/* Table of Contents - hide on print */}
-        <div className="bg-slate-800 rounded-xl p-4 mb-6 border border-slate-700 print:hidden">
+        {/* Table of Contents */}
+        <div className="bg-slate-800 rounded-xl p-4 mb-6 border border-slate-700">
           <h2 className="text-white font-semibold mb-3">Quick Navigation</h2>
           <div className="flex flex-wrap gap-2">
             {sections.map((section) => (
@@ -307,7 +273,7 @@ export default function StudyGuide({ onBack }) {
         </div>
 
         {/* Main Content */}
-        <div className="bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-700 print:bg-white print:border-none print:p-0">
+        <div className="bg-slate-800 rounded-xl p-4 sm:p-6 border border-slate-700">
           {filteredSections.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-slate-400">No sections match your search.</p>
@@ -327,7 +293,7 @@ export default function StudyGuide({ onBack }) {
         </div>
 
         {/* Interactive Checklist Section */}
-        <div className="bg-slate-800 rounded-xl p-4 sm:p-6 mt-6 border border-slate-700 print:hidden" id="checklist">
+        <div className="bg-slate-800 rounded-xl p-4 sm:p-6 mt-6 border border-slate-700" id="checklist">
           <h2 className="text-xl font-bold text-amber-500 mb-4 flex items-center gap-2">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -368,23 +334,6 @@ export default function StudyGuide({ onBack }) {
         </div>
       </div>
 
-      {/* Print styles */}
-      <style>{`
-        @media print {
-          .print\\:hidden { display: none !important; }
-          .print\\:bg-white { background: white !important; }
-          .print\\:border-none { border: none !important; }
-          .print\\:p-0 { padding: 0 !important; }
-          .print\\:max-w-none { max-width: none !important; }
-          .print\\:px-8 { padding-left: 2rem !important; padding-right: 2rem !important; }
-          
-          body { background: white !important; }
-          .bg-slate-800, .bg-slate-900 { background: white !important; }
-          .text-white, .text-slate-200, .text-slate-300 { color: black !important; }
-          .text-amber-500 { color: #d97706 !important; }
-          .border-slate-700, .border-slate-600 { border-color: #ccc !important; }
-        }
-      `}</style>
     </div>
   );
 }
