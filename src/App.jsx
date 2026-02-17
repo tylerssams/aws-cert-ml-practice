@@ -1613,10 +1613,10 @@ export default function AWSMLQuiz() {
             {currentQuestion === questions.length - 1 ? (
               <button
                 onClick={finishTest}
-                className="flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg"
+                className="flex items-center px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg whitespace-nowrap text-sm"
               >
-                Finish Exam
-                <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                Finish
+                <svg className="w-5 h-5 ml-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </button>
@@ -1735,7 +1735,7 @@ export default function AWSMLQuiz() {
                 </svg>
               </button>
               {showExportMenu && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-700 rounded-xl border border-slate-600 overflow-hidden shadow-xl z-10">
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-slate-700 rounded-xl border border-slate-600 overflow-hidden shadow-xl z-10">
                   <button
                     onClick={handleExportHTML}
                     className="w-full px-4 py-3 text-left text-white hover:bg-slate-600 transition-colors flex items-center"
