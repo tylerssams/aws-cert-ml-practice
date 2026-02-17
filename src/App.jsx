@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ProfileSelect from './components/ProfileSelect';
 import TestDashboard from './components/TestDashboard';
+import StudyGuide from './components/StudyGuide';
 import {
   getActiveProfile,
   createAttempt,
@@ -1367,6 +1368,11 @@ export default function AWSMLQuiz() {
     return <ProfileSelect onProfileSelected={handleProfileSelected} />;
   }
 
+  // Study Guide Screen
+  if (screen === 'studyguide') {
+    return <StudyGuide onBack={() => setScreen('dashboard')} />;
+  }
+
   // Test Dashboard Screen
   if (screen === 'dashboard') {
     return (
@@ -1377,6 +1383,7 @@ export default function AWSMLQuiz() {
         onResumeAttempt={handleResumeAttempt}
         onViewResults={handleViewResults}
         onSwitchProfile={handleSwitchProfile}
+        onOpenStudyGuide={() => setScreen('studyguide')}
       />
     );
   }
@@ -1384,34 +1391,34 @@ export default function AWSMLQuiz() {
   // Test Selection Screen (legacy - now redirects to dashboard)
   if (screen === 'select') {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 sm:p-6">
         <div className="max-w-2xl w-full">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl mb-6 shadow-lg">
-              <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="inline-flex items-center justify-center w-14 h-14 sm:w-20 sm:h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl sm:rounded-2xl mb-4 sm:mb-6 shadow-lg">
+              <svg className="w-7 h-7 sm:w-10 sm:h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">AWS Machine Learning Specialty</h1>
-            <p className="text-slate-400 text-lg">Select a Practice Exam</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-white mb-2">AWS ML Specialty</h1>
+            <p className="text-slate-400 text-sm sm:text-lg">Select a Practice Exam</p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             {Object.entries(testBank).map(([testId, test]) => (
               <button
                 key={testId}
                 onClick={() => selectTest(testId)}
-                className="w-full bg-slate-800 rounded-2xl p-6 border border-slate-700 hover:border-amber-500 transition-all duration-200 text-left group"
+                className="w-full bg-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-slate-700 hover:border-amber-500 transition-all duration-200 text-left group"
               >
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-semibold text-white group-hover:text-amber-500 transition-colors">
+                  <div className="min-w-0 flex-1">
+                    <h2 className="text-base sm:text-xl font-semibold text-white group-hover:text-amber-500 transition-colors">
                       {test.name}
                     </h2>
-                    <p className="text-slate-400 mt-1">{test.description}</p>
-                    <p className="text-slate-500 text-sm mt-2">{test.questions.length} questions</p>
+                    <p className="text-slate-400 text-sm sm:text-base mt-1 truncate">{test.description}</p>
+                    <p className="text-slate-500 text-xs sm:text-sm mt-1 sm:mt-2">{test.questions.length} questions</p>
                   </div>
-                  <svg className="w-6 h-6 text-slate-500 group-hover:text-amber-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 sm:w-6 sm:h-6 text-slate-500 group-hover:text-amber-500 transition-colors flex-shrink-0 ml-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>
@@ -1426,83 +1433,83 @@ export default function AWSMLQuiz() {
   // Start Screen
   if (screen === 'start') {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
-        <div className="max-w-2xl w-full bg-slate-800 rounded-2xl shadow-2xl p-8 border border-slate-700">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 sm:p-6">
+        <div className="max-w-2xl w-full bg-slate-800 rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-8 border border-slate-700">
           <button
             onClick={goToTestSelect}
-            className="flex items-center text-slate-400 hover:text-white mb-6 transition-colors"
+            className="flex items-center text-slate-400 hover:text-white mb-4 sm:mb-6 transition-colors text-sm sm:text-base"
           >
-            <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Dashboard
+            Back
           </button>
 
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-2xl mb-6 shadow-lg">
-              <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="inline-flex items-center justify-center w-14 h-14 sm:w-20 sm:h-20 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl sm:rounded-2xl mb-4 sm:mb-6 shadow-lg">
+              <svg className="w-7 h-7 sm:w-10 sm:h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">{testBank[selectedTest].name}</h1>
-            <p className="text-slate-400 text-lg">{testBank[selectedTest].description}</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-white mb-2">{testBank[selectedTest].name}</h1>
+            <p className="text-slate-400 text-sm sm:text-lg">{testBank[selectedTest].description}</p>
           </div>
           
-          <div className="bg-slate-700/50 rounded-xl p-6 mb-8">
-            <h2 className="text-lg font-semibold text-white mb-4">Exam Overview</h2>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="bg-slate-700/50 rounded-lg sm:rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Exam Overview</h2>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
               <div className="flex items-center text-slate-300">
-                <svg className="w-5 h-5 mr-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
                 30 Questions
               </div>
               <div className="flex items-center text-slate-300">
-                <svg className="w-5 h-5 mr-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 75% to Pass
               </div>
               <div className="flex items-center text-slate-300">
-                <svg className="w-5 h-5 mr-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Timed (Count-up)
+                Timed
               </div>
               <div className="flex items-center text-slate-300">
-                <svg className="w-5 h-5 mr-2 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                 </svg>
-                Navigate Freely
+                Free Nav
               </div>
             </div>
           </div>
 
-          <div className="bg-slate-700/50 rounded-xl p-6 mb-8">
-            <h2 className="text-lg font-semibold text-white mb-3">Domain Coverage</h2>
-            <div className="space-y-2 text-sm">
+          <div className="bg-slate-700/50 rounded-lg sm:rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
+            <h2 className="text-base sm:text-lg font-semibold text-white mb-2 sm:mb-3">Domain Coverage</h2>
+            <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
               <div className="flex justify-between text-slate-300">
                 <span>Data Engineering</span>
-                <span className="text-amber-500">6 questions (20%)</span>
+                <span className="text-amber-500">6 (20%)</span>
               </div>
               <div className="flex justify-between text-slate-300">
                 <span>Exploratory Data Analysis</span>
-                <span className="text-amber-500">7 questions (24%)</span>
+                <span className="text-amber-500">7 (24%)</span>
               </div>
               <div className="flex justify-between text-slate-300">
                 <span>Modeling</span>
-                <span className="text-amber-500">11 questions (36%)</span>
+                <span className="text-amber-500">11 (36%)</span>
               </div>
               <div className="flex justify-between text-slate-300">
-                <span>ML Implementation & Operations</span>
-                <span className="text-amber-500">6 questions (20%)</span>
+                <span className="truncate mr-2">ML Implementation & Ops</span>
+                <span className="text-amber-500 flex-shrink-0">6 (20%)</span>
               </div>
             </div>
           </div>
 
           <button
             onClick={startTest}
-            className="w-full py-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-amber-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            className="w-full py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-amber-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
           >
             Start Exam
           </button>
@@ -1516,28 +1523,30 @@ export default function AWSMLQuiz() {
     const answeredCount = Object.keys(answers).length;
     
     return (
-      <div className="min-h-screen bg-slate-900 p-6">
+      <div className="min-h-screen bg-slate-900 p-3 sm:p-6">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="bg-slate-800 rounded-xl p-4 mb-6 flex items-center justify-between border border-slate-700">
-            <div className="flex items-center space-x-6">
-              <div className="text-slate-400 text-sm">
-                Question <span className="text-white font-semibold">{currentQuestion + 1}</span> of {questions.length}
+          <div className="bg-slate-800 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 border border-slate-700">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm">
+                <div className="text-slate-400">
+                  Q <span className="text-white font-semibold">{currentQuestion + 1}</span>/{questions.length}
+                </div>
+                <div className="text-slate-400">
+                  <span className="text-amber-500 font-semibold">{answeredCount}</span> answered
+                </div>
               </div>
-              <div className="text-slate-400 text-sm">
-                Answered: <span className="text-amber-500 font-semibold">{answeredCount}</span>/{questions.length}
+              <div className="flex items-center space-x-2 bg-slate-700 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-white font-mono font-semibold text-sm sm:text-base">{formatTime(elapsedTime)}</span>
               </div>
-            </div>
-            <div className="flex items-center space-x-2 bg-slate-700 px-4 py-2 rounded-lg">
-              <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="text-white font-mono font-semibold">{formatTime(elapsedTime)}</span>
             </div>
           </div>
 
           {/* Progress bar */}
-          <div className="h-2 bg-slate-700 rounded-full mb-6 overflow-hidden">
+          <div className="h-1.5 sm:h-2 bg-slate-700 rounded-full mb-4 sm:mb-6 overflow-hidden">
             <div 
               className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-300"
               style={{ width: `${((currentQuestion + 1) / questions.length) * 100}%` }}
@@ -1545,17 +1554,17 @@ export default function AWSMLQuiz() {
           </div>
 
           {/* Question Card */}
-          <div className="bg-slate-800 rounded-2xl p-8 mb-6 border border-slate-700">
-            <div className="inline-block px-3 py-1 bg-amber-500/20 text-amber-500 text-sm font-medium rounded-full mb-4">
+          <div className="bg-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-8 mb-4 sm:mb-6 border border-slate-700">
+            <div className="inline-block px-2 py-1 sm:px-3 bg-amber-500/20 text-amber-500 text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4">
               {q.domain}
             </div>
-            <h2 className="text-xl text-white mb-8 leading-relaxed">{q.question}</h2>
+            <h2 className="text-base sm:text-xl text-white mb-6 sm:mb-8 leading-relaxed">{q.question}</h2>
             
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {q.options.map(option => (
                 <label
                   key={option.id}
-                  className={`flex items-start p-4 rounded-xl cursor-pointer transition-all duration-200 border-2 ${
+                  className={`flex items-start p-3 sm:p-4 rounded-lg sm:rounded-xl cursor-pointer transition-all duration-200 border-2 ${
                     answers[q.id] === option.id
                       ? 'border-amber-500 bg-amber-500/10'
                       : 'border-slate-600 hover:border-slate-500 hover:bg-slate-700/50'
@@ -1568,38 +1577,38 @@ export default function AWSMLQuiz() {
                     onChange={() => handleAnswer(q.id, option.id)}
                     className="sr-only"
                   />
-                  <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-semibold mr-4 ${
+                  <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-semibold mr-3 sm:mr-4 text-sm sm:text-base ${
                     answers[q.id] === option.id
                       ? 'bg-amber-500 text-white'
                       : 'bg-slate-600 text-slate-300'
                   }`}>
                     {option.id}
                   </div>
-                  <span className="text-slate-200 pt-1">{option.text}</span>
+                  <span className="text-slate-200 pt-0.5 sm:pt-1 text-sm sm:text-base">{option.text}</span>
                 </label>
               ))}
             </div>
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <button
               onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
               disabled={currentQuestion === 0}
-              className="flex items-center px-6 py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="flex items-center px-3 sm:px-6 py-2.5 sm:py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm sm:text-base"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Previous
+              <span className="hidden sm:inline">Previous</span>
             </button>
 
-            <div className="flex items-center space-x-2">
+            <div className="hidden sm:flex items-center space-x-1.5 overflow-x-auto max-w-[50%] py-2">
               {questions.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setCurrentQuestion(idx)}
-                  className={`w-3 h-3 rounded-full transition-all ${
+                  className={`w-2.5 h-2.5 rounded-full transition-all flex-shrink-0 ${
                     idx === currentQuestion
                       ? 'bg-amber-500 scale-125'
                       : answers[questions[idx].id]
@@ -1609,24 +1618,30 @@ export default function AWSMLQuiz() {
                 />
               ))}
             </div>
+            
+            {/* Mobile question indicator */}
+            <div className="sm:hidden text-slate-400 text-sm">
+              {currentQuestion + 1} / {questions.length}
+            </div>
 
             {currentQuestion === questions.length - 1 ? (
               <button
                 onClick={finishTest}
-                className="flex items-center px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg whitespace-nowrap text-sm"
+                className="flex items-center px-3 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg whitespace-nowrap text-sm"
               >
-                Finish
-                <svg className="w-5 h-5 ml-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <span className="hidden sm:inline">Finish</span>
+                <span className="sm:hidden">Done</span>
+                <svg className="w-5 h-5 sm:ml-1 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </button>
             ) : (
               <button
                 onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
-                className="flex items-center px-6 py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 transition-all"
+                className="flex items-center px-3 sm:px-6 py-2.5 sm:py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 transition-all text-sm sm:text-base"
               >
-                Next
-                <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <span className="hidden sm:inline">Next</span>
+                <svg className="w-5 h-5 sm:ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
@@ -1640,57 +1655,57 @@ export default function AWSMLQuiz() {
   // Results Screen
   if (screen === 'results') {
     return (
-      <div className="min-h-screen bg-slate-900 p-6">
+      <div className="min-h-screen bg-slate-900 p-4 sm:p-6">
         <div className="max-w-2xl mx-auto">
-          <div className="bg-slate-800 rounded-2xl p-8 border border-slate-700 text-center mb-6">
-            <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full mb-6 ${
+          <div className="bg-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-8 border border-slate-700 text-center mb-4 sm:mb-6">
+            <div className={`inline-flex items-center justify-center w-16 h-16 sm:w-24 sm:h-24 rounded-full mb-4 sm:mb-6 ${
               passed ? 'bg-green-500/20' : 'bg-red-500/20'
             }`}>
               {passed ? (
-                <svg className="w-12 h-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-8 h-8 sm:w-12 sm:h-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               ) : (
-                <svg className="w-12 h-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-8 h-8 sm:w-12 sm:h-12 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               )}
             </div>
             
-            <h1 className={`text-3xl font-bold mb-2 ${passed ? 'text-green-500' : 'text-red-500'}`}>
+            <h1 className={`text-2xl sm:text-3xl font-bold mb-2 ${passed ? 'text-green-500' : 'text-red-500'}`}>
               {passed ? 'PASSED' : 'NOT PASSED'}
             </h1>
-            <p className="text-slate-400 mb-8">{testBank[selectedTest].name} Complete</p>
+            <p className="text-slate-400 text-sm sm:text-base mb-6 sm:mb-8">{testBank[selectedTest].name} Complete</p>
 
-            <div className="grid grid-cols-3 gap-4 mb-8">
-              <div className="bg-slate-700/50 rounded-xl p-4">
-                <div className="text-3xl font-bold text-white">{score}/{questions.length}</div>
-                <div className="text-slate-400 text-sm">Correct</div>
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6 sm:mb-8">
+              <div className="bg-slate-700/50 rounded-lg sm:rounded-xl p-2 sm:p-4">
+                <div className="text-xl sm:text-3xl font-bold text-white">{score}/{questions.length}</div>
+                <div className="text-slate-400 text-xs sm:text-sm">Correct</div>
               </div>
-              <div className="bg-slate-700/50 rounded-xl p-4">
-                <div className={`text-3xl font-bold ${passed ? 'text-green-500' : 'text-red-500'}`}>{percentage}%</div>
-                <div className="text-slate-400 text-sm">Score</div>
+              <div className="bg-slate-700/50 rounded-lg sm:rounded-xl p-2 sm:p-4">
+                <div className={`text-xl sm:text-3xl font-bold ${passed ? 'text-green-500' : 'text-red-500'}`}>{percentage}%</div>
+                <div className="text-slate-400 text-xs sm:text-sm">Score</div>
               </div>
-              <div className="bg-slate-700/50 rounded-xl p-4">
-                <div className="text-3xl font-bold text-amber-500">{formatTime(finalTime)}</div>
-                <div className="text-slate-400 text-sm">Time</div>
+              <div className="bg-slate-700/50 rounded-lg sm:rounded-xl p-2 sm:p-4">
+                <div className="text-xl sm:text-3xl font-bold text-amber-500">{formatTime(finalTime)}</div>
+                <div className="text-slate-400 text-xs sm:text-sm">Time</div>
               </div>
             </div>
 
-            <div className="bg-slate-700/50 rounded-xl p-6 text-left">
-              <h2 className="text-lg font-semibold text-white mb-4">Domain Breakdown</h2>
-              <div className="space-y-3">
+            <div className="bg-slate-700/50 rounded-lg sm:rounded-xl p-4 sm:p-6 text-left">
+              <h2 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Domain Breakdown</h2>
+              <div className="space-y-2 sm:space-y-3">
                 {Object.entries(domainScores).map(([domain, scores]) => {
                   const domainPct = Math.round((scores.correct / scores.total) * 100);
                   return (
                     <div key={domain}>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="text-slate-300">{domain}</span>
-                        <span className={domainPct >= 75 ? 'text-green-500' : 'text-red-500'}>
+                      <div className="flex flex-col sm:flex-row sm:justify-between text-xs sm:text-sm mb-1 gap-0.5">
+                        <span className="text-slate-300 truncate">{domain}</span>
+                        <span className={`${domainPct >= 75 ? 'text-green-500' : 'text-red-500'} flex-shrink-0`}>
                           {scores.correct}/{scores.total} ({domainPct}%)
                         </span>
                       </div>
-                      <div className="h-2 bg-slate-600 rounded-full overflow-hidden">
+                      <div className="h-1.5 sm:h-2 bg-slate-600 rounded-full overflow-hidden">
                         <div 
                           className={`h-full transition-all ${domainPct >= 75 ? 'bg-green-500' : 'bg-red-500'}`}
                           style={{ width: `${domainPct}%` }}
@@ -1705,8 +1720,8 @@ export default function AWSMLQuiz() {
 
           {/* Attempt info if viewing past attempt */}
           {viewingAttempt && (
-            <div className="bg-slate-700/30 rounded-xl p-3 mb-4 text-center">
-              <span className="text-slate-400 text-sm">
+            <div className="bg-slate-700/30 rounded-lg sm:rounded-xl p-3 mb-4 text-center">
+              <span className="text-slate-400 text-xs sm:text-sm">
                 Attempt from {new Date(viewingAttempt.completedAt).toLocaleDateString('en-US', {
                   month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
                 })}
@@ -1714,22 +1729,22 @@ export default function AWSMLQuiz() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-3 sm:mb-4">
             <button
               onClick={startReview}
-              className="py-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-amber-700 transition-all shadow-lg"
+              className="py-3 sm:py-4 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-amber-700 transition-all shadow-lg text-sm sm:text-base"
             >
               Review Answers
             </button>
             <div className="relative">
               <button
                 onClick={() => setShowExportMenu(!showExportMenu)}
-                className="w-full py-4 bg-slate-700 text-white font-semibold rounded-xl hover:bg-slate-600 transition-all flex items-center justify-center"
+                className="w-full py-3 sm:py-4 bg-slate-700 text-white font-semibold rounded-xl hover:bg-slate-600 transition-all flex items-center justify-center text-sm sm:text-base"
               >
-                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                Export Results
+                Export
                 <svg className={`w-4 h-4 ml-2 transition-transform ${showExportMenu ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -1777,18 +1792,18 @@ export default function AWSMLQuiz() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <button
               onClick={restartTest}
-              className="py-4 bg-slate-700 text-white font-semibold rounded-xl hover:bg-slate-600 transition-all"
+              className="py-3 sm:py-4 bg-slate-700 text-white font-semibold rounded-xl hover:bg-slate-600 transition-all text-sm sm:text-base"
             >
-              {viewingAttempt ? 'Take New Attempt' : 'Retake This Exam'}
+              {viewingAttempt ? 'New Attempt' : 'Retake Exam'}
             </button>
             <button
               onClick={goToTestSelect}
-              className="py-4 bg-slate-700 text-white font-semibold rounded-xl hover:bg-slate-600 transition-all"
+              className="py-3 sm:py-4 bg-slate-700 text-white font-semibold rounded-xl hover:bg-slate-600 transition-all text-sm sm:text-base"
             >
-              Back to Dashboard
+              Dashboard
             </button>
           </div>
         </div>
@@ -1802,34 +1817,36 @@ export default function AWSMLQuiz() {
     const isCorrect = userAnswer === q.correct;
     
     return (
-      <div className="min-h-screen bg-slate-900 p-6">
+      <div className="min-h-screen bg-slate-900 p-3 sm:p-6">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
-          <div className="bg-slate-800 rounded-xl p-4 mb-6 flex items-center justify-between border border-slate-700">
-            <div className="flex items-center space-x-4">
-              <span className="text-slate-400 text-sm">
-                Review Question <span className="text-white font-semibold">{currentQuestion + 1}</span> of {questions.length}
-              </span>
-              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                isCorrect ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'
-              }`}>
-                {isCorrect ? 'Correct' : 'Incorrect'}
-              </span>
+          <div className="bg-slate-800 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6 border border-slate-700">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 sm:gap-4">
+                <span className="text-slate-400 text-xs sm:text-sm">
+                  Q <span className="text-white font-semibold">{currentQuestion + 1}</span>/{questions.length}
+                </span>
+                <span className={`px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium ${
+                  isCorrect ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'
+                }`}>
+                  {isCorrect ? 'Correct' : 'Incorrect'}
+                </span>
+              </div>
+              <button
+                onClick={() => setScreen('results')}
+                className="text-slate-400 hover:text-white transition-colors text-xs sm:text-sm"
+              >
+                Back to Results
+              </button>
             </div>
-            <button
-              onClick={() => setScreen('results')}
-              className="text-slate-400 hover:text-white transition-colors"
-            >
-              Back to Results
-            </button>
           </div>
 
           {/* Question Card */}
-          <div className="bg-slate-800 rounded-2xl p-8 mb-6 border border-slate-700">
-            <div className="inline-block px-3 py-1 bg-amber-500/20 text-amber-500 text-sm font-medium rounded-full mb-4">
+          <div className="bg-slate-800 rounded-xl sm:rounded-2xl p-4 sm:p-8 mb-4 sm:mb-6 border border-slate-700">
+            <div className="inline-block px-2 sm:px-3 py-1 bg-amber-500/20 text-amber-500 text-xs sm:text-sm font-medium rounded-full mb-3 sm:mb-4">
               {q.domain}
             </div>
-            <h2 className="text-xl text-white mb-8 leading-relaxed">{q.question}</h2>
+            <h2 className="text-base sm:text-xl text-white mb-6 sm:mb-8 leading-relaxed">{q.question}</h2>
             
             <div className="space-y-4">
               {q.options.map(option => {
@@ -1850,10 +1867,10 @@ export default function AWSMLQuiz() {
                 return (
                   <div
                     key={option.id}
-                    className={`p-4 rounded-xl border-2 ${borderColor} ${bgColor}`}
+                    className={`p-3 sm:p-4 rounded-lg sm:rounded-xl border-2 ${borderColor} ${bgColor}`}
                   >
-                    <div className="flex items-start mb-3">
-                      <div className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-semibold mr-4 ${
+                    <div className="flex items-start mb-2 sm:mb-3">
+                      <div className={`flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-semibold mr-3 sm:mr-4 text-sm sm:text-base ${
                         isThisCorrect
                           ? 'bg-green-500 text-white'
                           : wasSelected
@@ -1862,17 +1879,17 @@ export default function AWSMLQuiz() {
                       }`}>
                         {option.id}
                       </div>
-                      <div className="flex-1">
-                        <span className="text-slate-200">{option.text}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-slate-200 text-sm sm:text-base">{option.text}</span>
                         {wasSelected && (
-                          <span className="ml-2 text-sm text-slate-400">(Your answer)</span>
+                          <span className="ml-1 sm:ml-2 text-xs sm:text-sm text-slate-400">(Yours)</span>
                         )}
                         {isThisCorrect && (
-                          <span className="ml-2 text-sm text-green-500">(Correct answer)</span>
+                          <span className="ml-1 sm:ml-2 text-xs sm:text-sm text-green-500">(Correct)</span>
                         )}
                       </div>
                     </div>
-                    <div className={`ml-12 text-sm p-3 rounded-lg ${
+                    <div className={`ml-10 sm:ml-12 text-xs sm:text-sm p-2 sm:p-3 rounded-lg ${
                       isThisCorrect ? 'bg-green-500/10 text-green-400' : 'bg-slate-700/50 text-slate-400'
                     }`}>
                       {q.explanations[option.id]}
@@ -1884,26 +1901,26 @@ export default function AWSMLQuiz() {
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <button
               onClick={() => setCurrentQuestion(prev => Math.max(0, prev - 1))}
               disabled={currentQuestion === 0}
-              className="flex items-center px-6 py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="flex items-center px-3 sm:px-6 py-2.5 sm:py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm sm:text-base"
             >
-              <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 sm:mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
-              Previous
+              <span className="hidden sm:inline">Previous</span>
             </button>
 
-            <div className="flex items-center space-x-2">
+            <div className="hidden sm:flex items-center space-x-1.5 overflow-x-auto max-w-[50%] py-2">
               {questions.map((question, idx) => {
                 const wasCorrect = answers[question.id] === question.correct;
                 return (
                   <button
                     key={idx}
                     onClick={() => setCurrentQuestion(idx)}
-                    className={`w-3 h-3 rounded-full transition-all ${
+                    className={`w-2.5 h-2.5 rounded-full transition-all flex-shrink-0 ${
                       idx === currentQuestion
                         ? 'scale-125 ring-2 ring-white ring-offset-2 ring-offset-slate-900'
                         : ''
@@ -1912,14 +1929,19 @@ export default function AWSMLQuiz() {
                 );
               })}
             </div>
+            
+            {/* Mobile question indicator */}
+            <div className="sm:hidden text-slate-400 text-sm">
+              {currentQuestion + 1} / {questions.length}
+            </div>
 
             <button
               onClick={() => setCurrentQuestion(prev => Math.min(questions.length - 1, prev + 1))}
               disabled={currentQuestion === questions.length - 1}
-              className="flex items-center px-6 py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="flex items-center px-3 sm:px-6 py-2.5 sm:py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all text-sm sm:text-base"
             >
-              Next
-              <svg className="w-5 h-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <span className="hidden sm:inline">Next</span>
+              <svg className="w-5 h-5 sm:ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>

@@ -7,7 +7,8 @@ export default function TestDashboard({
   onStartTest, 
   onResumeAttempt, 
   onViewResults,
-  onSwitchProfile 
+  onSwitchProfile,
+  onOpenStudyGuide
 }) {
   const [expandedTest, setExpandedTest] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
@@ -36,29 +37,52 @@ export default function TestDashboard({
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 p-6">
+    <div className="min-h-screen bg-slate-900 p-4 sm:p-6">
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-white mb-1">Practice Exams</h1>
-            <p className="text-slate-400">Choose an exam to practice</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">Practice Exams</h1>
+            <p className="text-slate-400 text-sm sm:text-base">Choose an exam to practice</p>
           </div>
           <button
             onClick={onSwitchProfile}
-            className="flex items-center space-x-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl hover:bg-slate-700 transition-colors"
+            className="flex items-center space-x-2 px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl hover:bg-slate-700 transition-colors self-start sm:self-auto"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-600 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-amber-600 rounded-full flex items-center justify-center flex-shrink-0">
               <span className="text-white font-semibold text-sm">
                 {profile.name.charAt(0).toUpperCase()}
               </span>
             </div>
-            <span className="text-white font-medium">{profile.name}</span>
-            <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <span className="text-white font-medium text-sm sm:text-base">{profile.name}</span>
+            <svg className="w-4 h-4 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
             </svg>
           </button>
         </div>
+
+        {/* Study Guide Card */}
+        <button
+          onClick={onOpenStudyGuide}
+          className="w-full bg-gradient-to-r from-slate-800 to-slate-800 hover:from-slate-700 hover:to-slate-700 rounded-xl p-4 border border-slate-700 hover:border-amber-500/50 transition-all mb-6 text-left group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-base sm:text-lg font-semibold text-white group-hover:text-amber-500 transition-colors">Study Guide</h2>
+                <p className="text-slate-400 text-xs sm:text-sm">Complete exam preparation guide with interactive checklist</p>
+              </div>
+            </div>
+            <svg className="w-5 h-5 text-slate-500 group-hover:text-amber-500 transition-colors flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </button>
 
         {/* Test Cards */}
         <div className="space-y-4">
@@ -73,38 +97,38 @@ export default function TestDashboard({
                 className="bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden"
               >
                 {/* Test Info */}
-                <div className="p-6">
-                  <div className="flex items-start justify-between mb-4">
+                <div className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4 mb-4">
                     <div>
-                      <h2 className="text-xl font-semibold text-white mb-1">{test.name}</h2>
-                      <p className="text-slate-400">{test.description}</p>
+                      <h2 className="text-lg sm:text-xl font-semibold text-white mb-1">{test.name}</h2>
+                      <p className="text-slate-400 text-sm sm:text-base">{test.description}</p>
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-amber-500">{test.questions.length}</div>
+                    <div className="flex sm:flex-col items-center sm:items-end gap-2 sm:gap-0">
+                      <div className="text-xl sm:text-2xl font-bold text-amber-500">{test.questions.length}</div>
                       <div className="text-slate-500 text-sm">Questions</div>
                     </div>
                   </div>
 
                   {/* In-Progress Banner */}
                   {inProgress && (
-                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-4">
-                      <div className="flex items-center justify-between">
+                    <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 sm:p-4 mb-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center">
+                          <div className="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center flex-shrink-0">
                             <svg className="w-5 h-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           </div>
                           <div>
-                            <div className="text-amber-500 font-medium">In Progress</div>
-                            <div className="text-slate-400 text-sm">
+                            <div className="text-amber-500 font-medium text-sm sm:text-base">In Progress</div>
+                            <div className="text-slate-400 text-xs sm:text-sm">
                               {Object.keys(inProgress.answers).length}/{test.questions.length} answered · {formatTime(inProgress.elapsedTime)} elapsed
                             </div>
                           </div>
                         </div>
                         <button
                           onClick={() => onResumeAttempt(testId, inProgress)}
-                          className="px-4 py-2 bg-amber-500 text-white font-medium rounded-lg hover:bg-amber-600 transition-colors"
+                          className="px-4 py-2 bg-amber-500 text-white font-medium rounded-lg hover:bg-amber-600 transition-colors text-sm w-full sm:w-auto"
                         >
                           Continue
                         </button>
@@ -113,17 +137,17 @@ export default function TestDashboard({
                   )}
 
                   {/* Action Buttons */}
-                  <div className="flex items-center space-x-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={() => onStartTest(testId)}
-                      className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-amber-700 transition-all shadow-lg"
+                      className="flex-1 py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white font-semibold rounded-xl hover:from-orange-600 hover:to-amber-700 transition-all shadow-lg text-sm sm:text-base"
                     >
                       {inProgress ? 'Start New Attempt' : 'Take Exam'}
                     </button>
                     {completedAttempts.length > 0 && (
                       <button
                         onClick={() => setExpandedTest(isExpanded ? null : testId)}
-                        className="px-4 py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 transition-colors flex items-center space-x-2"
+                        className="px-4 py-3 bg-slate-700 text-white rounded-xl hover:bg-slate-600 transition-colors flex items-center justify-center sm:justify-start space-x-2 text-sm sm:text-base"
                       >
                         <span>History ({completedAttempts.length})</span>
                         <svg 
