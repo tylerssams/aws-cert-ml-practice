@@ -1,4 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import ProfileSelect from './components/ProfileSelect';
+import TestDashboard from './components/TestDashboard';
+import {
+  getActiveProfile,
+  createAttempt,
+  updateAttemptProgress,
+  completeAttempt,
+  getAttemptById,
+  exportAsJSON,
+  exportAsCSV,
+  exportAsHTML
+} from './storage';
 
 const testBank = {
   test1: {
@@ -1114,16 +1126,24 @@ const formatDate = () => {
 };
 
 export default function AWSMLQuiz() {
-  const [screen, setScreen] = useState('select'); // 'select', 'start', 'test', 'results', 'review'
+  // Profile and persistence state
+  const [activeProfile, setActiveProfileState] = useState(() => getActiveProfile());
+  const [currentAttemptId, setCurrentAttemptId] = useState(null);
+  const [viewingAttempt, setViewingAttempt] = useState(null); // For viewing past attempts
+  
+  // Screen and test state
+  const [screen, setScreen] = useState(() => getActiveProfile() ? 'dashboard' : 'profile'); // 'profile', 'dashboard', 'start', 'test', 'results', 'review'
   const [selectedTest, setSelectedTest] = useState(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState({});
   const [elapsedTime, setElapsedTime] = useState(0);
   const [finalTime, setFinalTime] = useState(0);
   const timerRef = useRef(null);
+  const autoSaveRef = useRef(null);
 
   const questions = selectedTest ? testBank[selectedTest].questions : [];
 
+  // Timer effect
   useEffect(() => {
     if (screen === 'test') {
       timerRef.current = setInterval(() => {
@@ -1135,16 +1155,94 @@ export default function AWSMLQuiz() {
     };
   }, [screen]);
 
+  // Auto-save progress effect
+  const saveProgress = useCallback(() => {
+    if (activeProfile && currentAttemptId && screen === 'test') {
+      updateAttemptProgress(activeProfile.id, currentAttemptId, {
+        answers,
+        currentQuestion,
+        elapsedTime
+      });
+    }
+  }, [activeProfile, currentAttemptId, screen, answers, currentQuestion, elapsedTime]);
+
+  // Save on answer change
+  useEffect(() => {
+    if (screen === 'test' && currentAttemptId) {
+      saveProgress();
+    }
+  }, [answers, currentQuestion]);
+
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    if (screen === 'test' && currentAttemptId) {
+      autoSaveRef.current = setInterval(saveProgress, 30000);
+    }
+    return () => {
+      if (autoSaveRef.current) clearInterval(autoSaveRef.current);
+    };
+  }, [screen, currentAttemptId, saveProgress]);
+
+  // Save on page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (screen === 'test' && currentAttemptId) {
+        saveProgress();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [screen, currentAttemptId, saveProgress]);
+
+  // Profile handlers
+  const handleProfileSelected = (profile) => {
+    setActiveProfileState(profile);
+    setScreen('dashboard');
+  };
+
+  const handleSwitchProfile = () => {
+    setActiveProfileState(null);
+    setScreen('profile');
+    setSelectedTest(null);
+    setCurrentAttemptId(null);
+    setViewingAttempt(null);
+  };
+
+  // Test selection handlers
   const selectTest = (testId) => {
     setSelectedTest(testId);
+    setViewingAttempt(null);
     setScreen('start');
   };
 
   const startTest = () => {
+    // Create a new attempt
+    const attempt = createAttempt(activeProfile.id, selectedTest);
+    setCurrentAttemptId(attempt.id);
     setScreen('test');
     setCurrentQuestion(0);
     setAnswers({});
     setElapsedTime(0);
+  };
+
+  // Resume an in-progress attempt
+  const handleResumeAttempt = (testId, attempt) => {
+    setSelectedTest(testId);
+    setCurrentAttemptId(attempt.id);
+    setAnswers(attempt.answers || {});
+    setCurrentQuestion(attempt.currentQuestion || 0);
+    setElapsedTime(attempt.elapsedTime || 0);
+    setViewingAttempt(null);
+    setScreen('test');
+  };
+
+  // View past attempt results
+  const handleViewResults = (testId, attempt) => {
+    setSelectedTest(testId);
+    setViewingAttempt(attempt);
+    setAnswers(attempt.answers || {});
+    setFinalTime(attempt.elapsedTime);
+    setScreen('results');
   };
 
   const handleAnswer = (questionId, answerId) => {
@@ -1153,7 +1251,24 @@ export default function AWSMLQuiz() {
 
   const finishTest = () => {
     if (timerRef.current) clearInterval(timerRef.current);
+    if (autoSaveRef.current) clearInterval(autoSaveRef.current);
+    
+    const finalScore = calculateScore();
+    const finalPercentage = Math.round((finalScore / questions.length) * 100);
+    const didPass = finalPercentage >= 75;
+    
+    // Save completed attempt
+    if (activeProfile && currentAttemptId) {
+      completeAttempt(activeProfile.id, currentAttemptId, {
+        score: finalScore,
+        percentage: finalPercentage,
+        passed: didPass,
+        finalTime: elapsedTime
+      });
+    }
+    
     setFinalTime(elapsedTime);
+    setViewingAttempt(null); // We're viewing current attempt, not a past one
     setScreen('results');
   };
 
@@ -1176,115 +1291,57 @@ export default function AWSMLQuiz() {
     setElapsedTime(0);
     setFinalTime(0);
     setCurrentQuestion(0);
+    setCurrentAttemptId(null);
+    setViewingAttempt(null);
   };
 
   const goToTestSelect = () => {
-    setScreen('select');
+    setScreen('dashboard');
     setSelectedTest(null);
     setAnswers({});
     setElapsedTime(0);
     setFinalTime(0);
     setCurrentQuestion(0);
+    setCurrentAttemptId(null);
+    setViewingAttempt(null);
   };
 
-  const exportResults = () => {
-    const score = calculateScore();
-    const percentage = Math.round((score / questions.length) * 100);
-    const passed = percentage >= 75;
-    
-    // Domain breakdown
-    const domainScores = {};
-    questions.forEach(question => {
-      if (!domainScores[question.domain]) {
-        domainScores[question.domain] = { correct: 0, total: 0 };
-      }
-      domainScores[question.domain].total++;
-      if (answers[question.id] === question.correct) {
-        domainScores[question.domain].correct++;
-      }
-    });
+  // Export state for showing export options
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
-    let exportText = `AWS Machine Learning Specialty - ${testBank[selectedTest].name}
-Generated: ${formatDate()}
-================================================================================
+  // Get the attempt data for export (either viewing past attempt or current completed one)
+  const getExportAttempt = () => {
+    if (viewingAttempt) {
+      return viewingAttempt;
+    }
+    // Build attempt object from current state
+    return {
+      answers,
+      score,
+      percentage,
+      passed,
+      elapsedTime: finalTime,
+      startedAt: new Date().toISOString(),
+      completedAt: new Date().toISOString()
+    };
+  };
 
-RESULTS SUMMARY
----------------
-Score: ${score}/${questions.length} (${percentage}%)
-Status: ${passed ? 'PASSED' : 'NOT PASSED'}
-Time: ${formatTime(finalTime)}
-Passing Score: 75%
+  const handleExportJSON = () => {
+    const attempt = getExportAttempt();
+    exportAsJSON(attempt, testBank[selectedTest], questions);
+    setShowExportMenu(false);
+  };
 
-DOMAIN BREAKDOWN
-----------------
-`;
-    
-    Object.entries(domainScores).forEach(([domain, scores]) => {
-      const domainPct = Math.round((scores.correct / scores.total) * 100);
-      exportText += `${domain}: ${scores.correct}/${scores.total} (${domainPct}%) ${domainPct >= 75 ? '✓' : '✗'}\n`;
-    });
+  const handleExportCSV = () => {
+    const attempt = getExportAttempt();
+    exportAsCSV(attempt, testBank[selectedTest], questions);
+    setShowExportMenu(false);
+  };
 
-    exportText += `
-================================================================================
-DETAILED QUESTION REVIEW
-================================================================================
-`;
-
-    questions.forEach((q, idx) => {
-      const userAnswer = answers[q.id] || 'Not answered';
-      const isCorrect = userAnswer === q.correct;
-      
-      exportText += `
---------------------------------------------------------------------------------
-Question ${idx + 1}: ${isCorrect ? '✓ CORRECT' : '✗ INCORRECT'}
-Domain: ${q.domain}
---------------------------------------------------------------------------------
-
-${q.question}
-
-Options:
-`;
-      
-      q.options.forEach(opt => {
-        let marker = '  ';
-        if (opt.id === q.correct && opt.id === userAnswer) {
-          marker = '✓ ';
-        } else if (opt.id === q.correct) {
-          marker = '→ ';
-        } else if (opt.id === userAnswer) {
-          marker = '✗ ';
-        }
-        exportText += `${marker}${opt.id}) ${opt.text}\n`;
-      });
-
-      exportText += `
-Your Answer: ${userAnswer}
-Correct Answer: ${q.correct}
-
-Explanations:
-`;
-      
-      q.options.forEach(opt => {
-        exportText += `\n${opt.id}: ${q.explanations[opt.id]}\n`;
-      });
-    });
-
-    exportText += `
-================================================================================
-End of Report
-================================================================================
-`;
-
-    // Create and download the file
-    const blob = new Blob([exportText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `AWS-ML-Specialty-${selectedTest}-Results-${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleExportHTML = () => {
+    const attempt = getExportAttempt();
+    exportAsHTML(attempt, testBank[selectedTest], questions, domainScores);
+    setShowExportMenu(false);
   };
 
   // Calculate derived values
@@ -1305,7 +1362,26 @@ End of Report
     }
   });
 
-  // Test Selection Screen
+  // Profile Selection Screen
+  if (screen === 'profile') {
+    return <ProfileSelect onProfileSelected={handleProfileSelected} />;
+  }
+
+  // Test Dashboard Screen
+  if (screen === 'dashboard') {
+    return (
+      <TestDashboard
+        profile={activeProfile}
+        testBank={testBank}
+        onStartTest={selectTest}
+        onResumeAttempt={handleResumeAttempt}
+        onViewResults={handleViewResults}
+        onSwitchProfile={handleSwitchProfile}
+      />
+    );
+  }
+
+  // Test Selection Screen (legacy - now redirects to dashboard)
   if (screen === 'select') {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
@@ -1359,7 +1435,7 @@ End of Report
             <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            Back to Test Selection
+            Back to Dashboard
           </button>
 
           <div className="text-center mb-8">
@@ -1627,6 +1703,17 @@ End of Report
             </div>
           </div>
 
+          {/* Attempt info if viewing past attempt */}
+          {viewingAttempt && (
+            <div className="bg-slate-700/30 rounded-xl p-3 mb-4 text-center">
+              <span className="text-slate-400 text-sm">
+                Attempt from {new Date(viewingAttempt.completedAt).toLocaleDateString('en-US', {
+                  month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+                })}
+              </span>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4 mb-4">
             <button
               onClick={startReview}
@@ -1634,15 +1721,60 @@ End of Report
             >
               Review Answers
             </button>
-            <button
-              onClick={exportResults}
-              className="py-4 bg-slate-700 text-white font-semibold rounded-xl hover:bg-slate-600 transition-all flex items-center justify-center"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Export Results
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowExportMenu(!showExportMenu)}
+                className="w-full py-4 bg-slate-700 text-white font-semibold rounded-xl hover:bg-slate-600 transition-all flex items-center justify-center"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export Results
+                <svg className={`w-4 h-4 ml-2 transition-transform ${showExportMenu ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {showExportMenu && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-700 rounded-xl border border-slate-600 overflow-hidden shadow-xl z-10">
+                  <button
+                    onClick={handleExportHTML}
+                    className="w-full px-4 py-3 text-left text-white hover:bg-slate-600 transition-colors flex items-center"
+                  >
+                    <svg className="w-5 h-5 mr-3 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <div>
+                      <div className="font-medium">View Report</div>
+                      <div className="text-slate-400 text-xs">Opens printable HTML report</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={handleExportJSON}
+                    className="w-full px-4 py-3 text-left text-white hover:bg-slate-600 transition-colors flex items-center border-t border-slate-600"
+                  >
+                    <svg className="w-5 h-5 mr-3 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                    </svg>
+                    <div>
+                      <div className="font-medium">Download JSON</div>
+                      <div className="text-slate-400 text-xs">Full data export</div>
+                    </div>
+                  </button>
+                  <button
+                    onClick={handleExportCSV}
+                    className="w-full px-4 py-3 text-left text-white hover:bg-slate-600 transition-colors flex items-center border-t border-slate-600"
+                  >
+                    <svg className="w-5 h-5 mr-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <div>
+                      <div className="font-medium">Download CSV</div>
+                      <div className="text-slate-400 text-xs">Open in Excel/Sheets</div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -1650,13 +1782,13 @@ End of Report
               onClick={restartTest}
               className="py-4 bg-slate-700 text-white font-semibold rounded-xl hover:bg-slate-600 transition-all"
             >
-              Retake This Exam
+              {viewingAttempt ? 'Take New Attempt' : 'Retake This Exam'}
             </button>
             <button
               onClick={goToTestSelect}
               className="py-4 bg-slate-700 text-white font-semibold rounded-xl hover:bg-slate-600 transition-all"
             >
-              Choose Different Exam
+              Back to Dashboard
             </button>
           </div>
         </div>
