@@ -133,6 +133,7 @@ export const createAttempt = (profileId, testId) => {
     startedAt: new Date().toISOString(),
     completedAt: null,
     answers: {},
+    bookmarks: [],
     currentQuestion: 0,
     elapsedTime: 0,
     score: null,
@@ -144,16 +145,27 @@ export const createAttempt = (profileId, testId) => {
   return attempt;
 };
 
-export const updateAttemptProgress = (profileId, attemptId, { answers, currentQuestion, elapsedTime }) => {
+export const updateAttemptProgress = (profileId, attemptId, { answers, bookmarks, currentQuestion, elapsedTime }) => {
   const data = loadData();
   const profile = data.profiles[profileId];
   if (!profile || !profile.attempts[attemptId]) return false;
   
   const attempt = profile.attempts[attemptId];
   if (answers !== undefined) attempt.answers = answers;
+  if (bookmarks !== undefined) attempt.bookmarks = bookmarks;
   if (currentQuestion !== undefined) attempt.currentQuestion = currentQuestion;
   if (elapsedTime !== undefined) attempt.elapsedTime = elapsedTime;
   
+  saveData(data);
+  return true;
+};
+
+export const updateAttemptBookmarks = (profileId, attemptId, bookmarks) => {
+  const data = loadData();
+  const profile = data.profiles[profileId];
+  if (!profile || !profile.attempts[attemptId]) return false;
+  
+  profile.attempts[attemptId].bookmarks = bookmarks;
   saveData(data);
   return true;
 };
@@ -195,6 +207,7 @@ export const getAttemptById = (profileId, attemptId) => {
 // ============ Export Functions ============
 
 export const exportAsJSON = (attempt, testData, questions) => {
+  const bookmarks = attempt.bookmarks || [];
   const exportData = {
     exportDate: new Date().toISOString(),
     testName: testData.name,
@@ -207,6 +220,7 @@ export const exportAsJSON = (attempt, testData, questions) => {
         userAnswer: attempt.answers[q.id] || null,
         correctAnswer: q.correct,
         isCorrect: attempt.answers[q.id] === q.correct,
+        bookmarked: bookmarks.includes(q.id),
         options: q.options.map(o => ({
           id: o.id,
           text: o.text,
@@ -228,20 +242,23 @@ export const exportAsJSON = (attempt, testData, questions) => {
 };
 
 export const exportAsCSV = (attempt, testData, questions) => {
+  const bookmarks = attempt.bookmarks || [];
   const rows = [
-    ['Question #', 'Domain', 'Question', 'Your Answer', 'Correct Answer', 'Result']
+    ['Question #', 'Domain', 'Question', 'Your Answer', 'Correct Answer', 'Result', 'Bookmarked']
   ];
   
   questions.forEach((q, idx) => {
     const userAnswer = attempt.answers[q.id] || 'Not answered';
     const isCorrect = userAnswer === q.correct;
+    const isBookmarked = bookmarks.includes(q.id);
     rows.push([
       idx + 1,
       q.domain,
       `"${q.question.replace(/"/g, '""')}"`,
       userAnswer,
       q.correct,
-      isCorrect ? 'Correct' : 'Incorrect'
+      isCorrect ? 'Correct' : 'Incorrect',
+      isBookmarked ? 'Yes' : ''
     ]);
   });
   
@@ -251,6 +268,7 @@ export const exportAsCSV = (attempt, testData, questions) => {
   rows.push(['Score', `${attempt.score}/${questions.length}`]);
   rows.push(['Percentage', `${attempt.percentage}%`]);
   rows.push(['Status', attempt.passed ? 'PASSED' : 'NOT PASSED']);
+  rows.push(['Bookmarked Questions', bookmarks.length]);
   
   const csv = rows.map(row => row.join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv' });
@@ -265,6 +283,7 @@ export const exportAsCSV = (attempt, testData, questions) => {
 };
 
 export const exportAsHTML = (attempt, testData, questions, domainScores) => {
+  const bookmarks = attempt.bookmarks || [];
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -291,6 +310,7 @@ export const exportAsHTML = (attempt, testData, questions, domainScores) => {
     .stat-label { font-size: 12px; color: #666; text-transform: uppercase; }
     .passed { color: #22c55e; }
     .failed { color: #ef4444; }
+    .bookmarked { color: #eab308; }
     .section { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .section h2 { font-size: 18px; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb; }
     .domain-bar { margin-bottom: 15px; }
@@ -298,11 +318,13 @@ export const exportAsHTML = (attempt, testData, questions, domainScores) => {
     .domain-progress { height: 8px; background: #e5e7eb; border-radius: 4px; overflow: hidden; }
     .domain-fill { height: 100%; border-radius: 4px; }
     .question { border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-    .question-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .question.bookmarked { border-color: #eab308; background: #fefce8; }
+    .question-header { display: flex; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 5px; }
     .question-num { font-weight: bold; }
     .badge { padding: 2px 8px; border-radius: 4px; font-size: 12px; }
     .correct { background: #dcfce7; color: #166534; }
     .incorrect { background: #fee2e2; color: #991b1b; }
+    .bookmark-badge { background: #fef9c3; color: #854d0e; }
     .domain-badge { background: #fef3c7; color: #92400e; }
     .question-text { margin-bottom: 15px; }
     .options { list-style: none; }
@@ -341,7 +363,12 @@ export const exportAsHTML = (attempt, testData, questions, domainScores) => {
         <div class="stat-label">Time</div>
       </div>
     </div>
-    
+    ${bookmarks.length > 0 ? `
+    <div class="section" style="background: #fefce8; border: 1px solid #eab308;">
+      <h2 style="color: #854d0e;">Bookmarked Questions (${bookmarks.length})</h2>
+      <p style="color: #854d0e; font-size: 14px;">Questions #${questions.map((q, idx) => bookmarks.includes(q.id) ? idx + 1 : null).filter(Boolean).join(', #')}</p>
+    </div>
+    ` : ''}
     <div class="section">
       <h2>Domain Breakdown</h2>
       ${Object.entries(domainScores).map(([domain, scores]) => {
@@ -364,11 +391,13 @@ export const exportAsHTML = (attempt, testData, questions, domainScores) => {
       ${questions.map((q, idx) => {
         const userAnswer = attempt.answers[q.id];
         const isCorrect = userAnswer === q.correct;
+        const isBookmarked = bookmarks.includes(q.id);
         return `
-        <div class="question">
+        <div class="question${isBookmarked ? ' bookmarked' : ''}">
           <div class="question-header">
             <span class="question-num">Question ${idx + 1}</span>
             <span>
+              ${isBookmarked ? '<span class="badge bookmark-badge">Bookmarked</span>' : ''}
               <span class="badge domain-badge">${q.domain}</span>
               <span class="badge ${isCorrect ? 'correct' : 'incorrect'}">${isCorrect ? 'Correct' : 'Incorrect'}</span>
             </span>
